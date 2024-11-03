@@ -27,7 +27,7 @@ jobs:
         run: |
             cd src/frontend
             npm install
-            npm build
+            npm run build
 
       - name: Boostrap CDK
         run: cdk bootstrap
