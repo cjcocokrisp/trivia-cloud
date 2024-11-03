@@ -27,12 +27,12 @@ jobs:
         run: cdk bootstrap
         env: 
           APP_NAME: ${{ secrets.APP_NAME }}
-          AWS_ACCESS_ID: ${{ secrets.AWS_ACCESS_ID }}
-          AWS_SECRET_ID: ${{ secrets.AWS_SECRET_ID }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ID }}
 
       - name: Deploy to AWS
-        run: cdk deploy
+        run: cdk deploy --all --require-approval never
         env: 
           APP_NAME: ${{ secrets.APP_NAME }}
-          AWS_ACCESS_ID: ${{ secrets.AWS_ACCESS_ID }}
-          AWS_SECRET_ID: ${{ secrets.AWS_SECRET_ID }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ID }}
