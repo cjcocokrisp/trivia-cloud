@@ -9,8 +9,8 @@ from trivia_cloud.trivia_cloud_stack import TriviaCloudStack
 load_dotenv()
 
 app = cdk.App()
-TriviaCloudStack(app, os.getenv("APP_NAME"), 
-                 env=cdk.Environment(account=os.getenv("AWS_ACCOUNT_ID"), region=os.getenv("AWS_DEFAULT_REGION")),
+TriviaCloudStack(app, os.getenv('APP_NAME'), 
+                 env=cdk.Environment(account=os.getenv('AWS_ACCOUNT_ID'), region=os.getenv('AWS_DEFAULT_REGION')),
 )
 
 app.synth()
