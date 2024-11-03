@@ -2,3 +2,5 @@ venv/
 .env
 cdk.out/
 trivia_cloud/__pycache__/
+src/frontend/node_modules
+src/frontend/build

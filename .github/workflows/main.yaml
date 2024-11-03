@@ -23,6 +23,12 @@ jobs:
             npm install -g aws-cdk
             pip install -r requirements.txt
 
+      - name: Build Frontend 
+        run: |
+            cd src/frontend
+            npm install
+            npm build
+
       - name: Boostrap CDK
         run: cdk bootstrap
         env: 
