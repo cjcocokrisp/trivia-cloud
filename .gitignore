@@ -1,1 +1,4 @@
 venv/
+.env
+cdk.out/
+trivia_cloud/__pycache__/
