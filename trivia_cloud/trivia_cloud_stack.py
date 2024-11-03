@@ -1,7 +1,8 @@
 from aws_cdk import (
     # Duration,
     Stack,
-    # aws_sqs as sqs,
+    aws_dynamodb as dynamodb,
+    RemovalPolicy
 )
 from constructs import Construct
 
@@ -10,10 +11,6 @@ class TriviaCloudStack(Stack):
     def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
-        # The code that defines your stack goes here
-
-        # example resource
-        # queue = sqs.Queue(
-        #     self, "TriviaCloudQueue",
-        #     visibility_timeout=Duration.seconds(300),
-        # )
+        table = dynamodb.Table(self, "Data", 
+                               partition_key=dynamodb.Attribute(name="gameID", type=dynamodb.AttributeType.NUMBER),
+                               removal_policy=RemovalPolicy.DESTROY)
