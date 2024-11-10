@@ -20,10 +20,17 @@ class TriviaCloudStack(Stack):
         super().__init__(scope, construct_id, **kwargs)
 
         # Constructs for websocket connects + backend
-        table = dynamodb.Table(
+        data_table = dynamodb.Table(
             self, 
-            f'Table{construct_id}', 
-            partition_key=dynamodb.Attribute(name='gameID', type=dynamodb.AttributeType.NUMBER),
+            f'DataTable{construct_id}', 
+            partition_key=dynamodb.Attribute(name='gameId', type=dynamodb.AttributeType.STRING),
+            removal_policy=RemovalPolicy.DESTROY
+        )
+
+        player_table = dynamodb.Table(
+            self, 
+            f'PlayerTable{construct_id}', 
+            partition_key=dynamodb.Attribute(name='connectionId', type=dynamodb.AttributeType.STRING),
             removal_policy=RemovalPolicy.DESTROY
         )
 
@@ -36,7 +43,8 @@ class TriviaCloudStack(Stack):
             f'ConnectID{construct_id}', 
             function_name=f'{construct_id}Connect',
             environment= {
-                'DATA_TABLE': table.table_name,
+                'DATA_TABLE': data_table.table_name,
+                'PLAYER_TABLE': player_table.table_name,
             },
             entry='src/api/connect', 
             timeout=Duration.seconds(300)
@@ -47,14 +55,17 @@ class TriviaCloudStack(Stack):
             f'DisconnectID{construct_id}', 
             function_name=f'{construct_id}Disconnect',
             environment= {
-                'DATA_TABLE': table.table_name,
+                'DATA_TABLE': data_table.table_name,
+                'PLAYER_TABLE': player_table.table_name,
             },
             entry='src/api/disconnect', 
             timeout=Duration.seconds(300)
         )
 
-        table.grant_read_write_data(connect_lambda)
-        table.grant_read_write_data(disconnect_lambda)
+        data_table.grant_read_write_data(connect_lambda)
+        data_table.grant_read_write_data(disconnect_lambda)
+        player_table.grant_read_write_data(connect_lambda)
+        player_table.grant_read_write_data(disconnect_lambda)
 
         websocket_api.add_route('$connect', 
             integration=integrations.WebSocketLambdaIntegration(f'ConnectIntegration{construct_id}', connect_lambda)

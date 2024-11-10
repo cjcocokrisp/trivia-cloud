@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 
 	//"trivia-cloud/backend/lib/db"
@@ -33,20 +32,26 @@ func init() {
 }
 
 func handleRequest(ctx context.Context, req *events.APIGatewayWebsocketProxyRequest) (response.Response, error) {
-	fmt.Println(req.Body)
+	connection, err := db.GetConnection(ctx, &dbClient, req.RequestContext.ConnectionID)
+	if connection != nil {
+		response.InternalSeverErrorResponse()
+	}
 
-	game, err := db.GetItem(ctx, &dbClient, 100)
+	game, err := db.GetGame(ctx, &dbClient, connection.GameId)
 	if err != nil {
 		return response.InternalSeverErrorResponse(), nil
 	}
 
 	for index, element := range game.Players {
-		if element.ConnectionID == req.RequestContext.ConnectionID {
+		if element.ConnectionId == req.RequestContext.ConnectionID {
 			game.Players[index].Connected = false
 		}
 	}
 
-	db.InsertItem(ctx, &dbClient, *game)
+	_, err = db.InsertGame(ctx, &dbClient, *game)
+	if err != nil {
+		return response.InternalSeverErrorResponse(), nil
+	}
 
 	return response.OkReponse(), nil
 }

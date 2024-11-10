@@ -2,11 +2,16 @@ package models
 
 type Player struct {
 	Username     string `json:"username" dynamodbav:"username"`
-	ConnectionID string `json:"connectionID" dynamodbav:"connectionID"`
+	ConnectionId string `json:"connectionId" dynamodbav:"connectionId"`
 	Connected    bool   `json:"connected" dynamodbav:"connected"`
 }
 
 type Game struct {
-	GameID  int      `json:"gameID" dynamodbav:"gameID"`
+	GameId  string   `json:"gameId" dynamodbav:"gameId"`
 	Players []Player `json:"players" dynamodbav:"players"`
+}
+
+type Connection struct {
+	ConnectionId string `json:"connectionId" dynamodbav:"connectionId"`
+	GameId       string `json:"gameId" dynamodbav:"gameId"`
 }

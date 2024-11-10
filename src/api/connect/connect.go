@@ -2,7 +2,10 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
+	"math/rand"
+	"strconv"
 
 	"trivia-cloud/backend/lib/db"
 	"trivia-cloud/backend/lib/models"
@@ -30,20 +33,63 @@ func init() {
 	dbClient = *dynamodb.NewFromConfig(sdkConfig)
 }
 
-func handleRequest(ctx context.Context, req *events.APIGatewayWebsocketProxyRequest) (response.Response, error) {
-	// TODO: add submitting on connection
-	game := models.Game{
-		GameID: 100,
-		Players: []models.Player{
-			{
-				Username:     "Testing",
-				ConnectionID: req.RequestContext.ConnectionID,
-				Connected:    true,
-			},
-		},
+func generateGameId() string {
+	code := ""
+	for i := 0; i < 6; i++ {
+		digit := rand.Intn(10)
+		code += strconv.Itoa(digit)
 	}
 
-	_, err := db.InsertItem(ctx, &dbClient, game)
+	return code
+}
+
+func handleRequest(ctx context.Context, req *events.APIGatewayWebsocketProxyRequest) (response.Response, error) {
+	username := req.QueryStringParameters["username"]
+	connectionType := req.QueryStringParameters["connectiontype"]
+
+	var id string
+	var game models.Game
+	if connectionType == "create" {
+		id = generateGameId()
+
+		game = models.Game{
+			GameId: id,
+			Players: []models.Player{
+				{
+					Username:     username,
+					ConnectionId: req.RequestContext.ConnectionID,
+					Connected:    true,
+				},
+			},
+		}
+	} else if connectionType == "join" {
+		id = req.QueryStringParameters["id"]
+
+		res, err := db.GetGame(ctx, &dbClient, id)
+		if res == nil || err != nil {
+			fmt.Println(res, err)
+			return response.InternalSeverErrorResponse(), nil
+		}
+		game = *res
+
+		player := models.Player{
+			Username:     username,
+			ConnectionId: req.RequestContext.ConnectionID,
+			Connected:    true,
+		}
+		game.Players = append(game.Players, player)
+	}
+
+	_, err := db.InsertGame(ctx, &dbClient, game)
+	if err != nil {
+		return response.InternalSeverErrorResponse(), err
+	}
+
+	connection := models.Connection{
+		ConnectionId: req.RequestContext.ConnectionID,
+		GameId:       id,
+	}
+	_, err = db.InsertConnection(ctx, &dbClient, connection)
 	if err != nil {
 		return response.InternalSeverErrorResponse(), err
 	}

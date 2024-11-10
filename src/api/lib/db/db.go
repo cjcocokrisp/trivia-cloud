@@ -17,20 +17,21 @@ import (
 )
 
 var (
-	TableName = os.Getenv("DATA_TABLE")
+	DataTableName   = os.Getenv("DATA_TABLE")
+	PlayerTableName = os.Getenv("PLAYER_TABLE")
 )
 
-func GetItem(ctx context.Context, db *dynamodb.Client, gameID int) (*models.Game, error) {
-	key, err := attributevalue.Marshal(gameID)
+func GetGame(ctx context.Context, db *dynamodb.Client, gameId string) (*models.Game, error) {
+	key, err := attributevalue.Marshal(gameId)
 	if err != nil {
 		fmt.Println(err)
 		return nil, err
 	}
 
 	input := &dynamodb.GetItemInput{
-		TableName: aws.String(TableName),
+		TableName: aws.String(DataTableName),
 		Key: map[string]types.AttributeValue{
-			"gameID": key,
+			"gameId": key,
 		},
 	}
 
@@ -54,7 +55,7 @@ func GetItem(ctx context.Context, db *dynamodb.Client, gameID int) (*models.Game
 	return game, nil
 }
 
-func InsertItem(ctx context.Context, db *dynamodb.Client, game models.Game) (*models.Game, error) {
+func InsertGame(ctx context.Context, db *dynamodb.Client, game models.Game) (*models.Game, error) {
 	item, err := attributevalue.MarshalMap(game)
 	if err != nil {
 		fmt.Println(err)
@@ -62,7 +63,7 @@ func InsertItem(ctx context.Context, db *dynamodb.Client, game models.Game) (*mo
 	}
 
 	input := &dynamodb.PutItemInput{
-		TableName: aws.String(TableName),
+		TableName: aws.String(DataTableName),
 		Item:      item,
 	}
 
@@ -81,8 +82,8 @@ func InsertItem(ctx context.Context, db *dynamodb.Client, game models.Game) (*mo
 	return &game, nil
 }
 
-func UpdateItem(ctx context.Context, db *dynamodb.Client, gameID int, updateGame models.Game) (*models.Game, error) {
-	key, err := attributevalue.Marshal(gameID)
+func UpdateGame(ctx context.Context, db *dynamodb.Client, gameId string, updateGame models.Game) (*models.Game, error) {
+	key, err := attributevalue.Marshal(gameId)
 	if err != nil {
 		fmt.Println(err)
 		return nil, err
@@ -95,8 +96,8 @@ func UpdateItem(ctx context.Context, db *dynamodb.Client, gameID int, updateGame
 		),
 	).WithCondition(
 		expression.Equal(
-			expression.Name("gameID"),
-			expression.Value(gameID),
+			expression.Name("gameId"),
+			expression.Value(gameId),
 		),
 	).Build()
 	if err != nil {
@@ -108,7 +109,7 @@ func UpdateItem(ctx context.Context, db *dynamodb.Client, gameID int, updateGame
 		Key: map[string]types.AttributeValue{
 			"id": key,
 		},
-		TableName:                 aws.String(TableName),
+		TableName:                 aws.String(DataTableName),
 		UpdateExpression:          expr.Update(),
 		ExpressionAttributeNames:  expr.Names(),
 		ExpressionAttributeValues: expr.Values(),
@@ -141,4 +142,65 @@ func UpdateItem(ctx context.Context, db *dynamodb.Client, gameID int, updateGame
 	}
 
 	return game, nil
+}
+
+func GetConnection(ctx context.Context, db *dynamodb.Client, connectionId string) (*models.Connection, error) {
+	key, err := attributevalue.Marshal(connectionId)
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+
+	input := &dynamodb.GetItemInput{
+		TableName: aws.String(PlayerTableName),
+		Key: map[string]types.AttributeValue{
+			"connectionId": key,
+		},
+	}
+
+	result, err := db.GetItem(ctx, input)
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+
+	if result.Item == nil {
+		return nil, nil
+	}
+
+	connection := new(models.Connection)
+	err = attributevalue.UnmarshalMap(result.Item, connection)
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+
+	return connection, nil
+}
+
+func InsertConnection(ctx context.Context, db *dynamodb.Client, connection models.Connection) (*models.Connection, error) {
+	item, err := attributevalue.MarshalMap(connection)
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+
+	input := &dynamodb.PutItemInput{
+		TableName: aws.String(PlayerTableName),
+		Item:      item,
+	}
+
+	res, err := db.PutItem(ctx, input)
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+
+	err = attributevalue.UnmarshalMap(res.Attributes, &connection)
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+
+	return &connection, nil
 }
