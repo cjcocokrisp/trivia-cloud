@@ -23,9 +23,9 @@ jobs:
             npm install -g aws-cdk
             pip install -r requirements.txt
 
-      - name: Build Frontend 
+      - name: Build Webapp 
         run: |
-            cd src/frontend
+            cd src/webapp
             npm install
             npm run build
 
