@@ -74,6 +74,14 @@ class TriviaCloudStack(Stack):
             integration=integrations.WebSocketLambdaIntegration(f'DisconnectIntegration{construct_id}', disconnect_lambda)
         )
 
+        api_stage = apigateway.WebSocketStage(
+            self,
+            f'ProdStage{construct_id}',
+            stage_name='prod',
+            web_socket_api=websocket_api,
+            auto_deploy=True
+        )
+
         # Constructs for serverless react app
         website_bucket = s3.Bucket(
             self, 'WebsiteBucket', 
