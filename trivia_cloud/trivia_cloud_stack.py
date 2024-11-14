@@ -83,13 +83,7 @@ class TriviaCloudStack(Stack):
             removal_policy=RemovalPolicy.DESTROY, 
             auto_delete_objects=True
         )
-        
-        s3_deployment.BucketDeployment(
-            self, 
-            'WebsiteDeploy', 
-            sources=[s3_deployment.Source.asset('./src/webapp/build/')], 
-            destination_bucket=website_bucket
-        )
 
-        CfnOutput(self, 'BucketExport', value=website_bucket.bucket_website_url, export_name='WebsiteBucketName')
+        CfnOutput(self, 'WebsiteBucketName', value=website_bucket.bucket_name, export_name='WebsiteBucketName')
+        CfnOutput(self, 'WebsiteBucketURL', value=website_bucket.bucket_website_url, export_name='WebsiteBucketURL')
         CfnOutput(self, 'WebsocketApiEndpoint', value=websocket_api.api_endpoint, export_name='WebsocketApiEndpoint')

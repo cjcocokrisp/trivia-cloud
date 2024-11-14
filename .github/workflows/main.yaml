@@ -22,12 +22,7 @@ jobs:
         run: |
             npm install -g aws-cdk
             pip install -r requirements.txt
-
-      - name: Build Webapp 
-        run: |
-            cd src/webapp
-            npm install
-            npm run build
+            apt-get -y install jq
 
       - name: Boostrap CDK
         run: cdk bootstrap
@@ -42,3 +37,7 @@ jobs:
           APP_NAME: ${{ secrets.APP_NAME }}
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ID }}
+
+      - name: Deploy React app to AWS
+        run: |
+            ./react-s3-deployment.sh
