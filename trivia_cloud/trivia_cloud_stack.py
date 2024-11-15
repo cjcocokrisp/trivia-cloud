@@ -62,6 +62,18 @@ class TriviaCloudStack(Stack):
             timeout=Duration.seconds(300)
         )
 
+        default_lambda = go_lambda.GoFunction(
+            self, 
+            f'DefaultID{construct_id}', 
+            function_name=f'{construct_id}Default',
+            environment= {
+                'DATA_TABLE':   data_table.table_name,
+                'PLAYER_TABLE': player_table.table_name,
+            },
+            entry='src/api/default', 
+            timeout=Duration.seconds(300)
+        )
+
         broadcast_connect_lambda = go_lambda.GoFunction(
             self, 
             f'BroadcastConnectID{construct_id}', 
@@ -72,20 +84,26 @@ class TriviaCloudStack(Stack):
             },
             entry='src/api/broadcast_connect', 
             timeout=Duration.seconds(300)
-        ) 
+        )
 
         data_table.grant_read_write_data(connect_lambda)
         data_table.grant_read_write_data(disconnect_lambda)
         data_table.grant_read_write_data(broadcast_connect_lambda)
+        data_table.grant_read_write_data(default_lambda)
         player_table.grant_read_write_data(connect_lambda)
         player_table.grant_read_write_data(disconnect_lambda)
         player_table.grant_read_write_data(broadcast_connect_lambda)
+        player_table.grant_read_write_data(default_lambda)
 
         websocket_api.add_route('$connect', 
             integration=integrations.WebSocketLambdaIntegration(f'ConnectIntegration{construct_id}', connect_lambda)
         )
         websocket_api.add_route('$disconnect', 
             integration=integrations.WebSocketLambdaIntegration(f'DisconnectIntegration{construct_id}', disconnect_lambda)
+        )
+
+        websocket_api.add_route('$default', 
+            integration=integrations.WebSocketLambdaIntegration(f'DefaultIntegration{construct_id}', default_lambda)
         )
 
         websocket_api.add_route('broadcastConnect',
@@ -100,6 +118,7 @@ class TriviaCloudStack(Stack):
             auto_deploy=True
         )
 
+        websocket_api.grant_manage_connections(default_lambda)
         websocket_api.grant_manage_connections(broadcast_connect_lambda)
 
         # Constructs for serverless react app

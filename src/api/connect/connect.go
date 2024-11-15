@@ -47,13 +47,10 @@ func handleRequest(ctx context.Context, req *events.APIGatewayWebsocketProxyRequ
 	username := req.QueryStringParameters["username"]
 	connectionType := req.QueryStringParameters["connectiontype"]
 
-	var id string
 	var game models.Game
 	if connectionType == "create" {
-		id = generateGameId()
-
 		game = models.Game{
-			GameId: id,
+			GameId: generateGameId(),
 			Players: []models.Player{
 				{
 					Username:     username,
@@ -63,7 +60,7 @@ func handleRequest(ctx context.Context, req *events.APIGatewayWebsocketProxyRequ
 			},
 		}
 	} else if connectionType == "join" {
-		id = req.QueryStringParameters["id"]
+		id := req.QueryStringParameters["id"]
 
 		res, err := db.GetGame(ctx, &dbClient, id)
 		if res == nil || err != nil {
@@ -87,14 +84,14 @@ func handleRequest(ctx context.Context, req *events.APIGatewayWebsocketProxyRequ
 
 	connection := models.Connection{
 		ConnectionId: req.RequestContext.ConnectionID,
-		GameId:       id,
+		GameId:       game.GameId,
 	}
 	_, err = db.InsertConnection(ctx, &dbClient, connection)
 	if err != nil {
 		return response.InternalSeverErrorResponse(), err
 	}
 
-	return response.OkReponse(), nil
+	return response.OkResponseWithBody(game.GameId), nil
 }
 
 func main() {
