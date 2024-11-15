@@ -20,10 +20,13 @@ require (
 )
 
 require (
+	github.com/aws/aws-sdk-go v1.55.5
 	github.com/aws/aws-sdk-go-v2 v1.32.4 // indirect
 	github.com/aws/aws-sdk-go-v2/config v1.28.3
 	github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue v1.15.15
 	github.com/aws/aws-sdk-go-v2/feature/dynamodb/expression v1.7.50
+	github.com/aws/aws-sdk-go-v2/service/apigatewaymanagementapi v1.23.5
+	github.com/aws/aws-sdk-go-v2/service/apigatewayv2 v1.24.5
 	github.com/aws/aws-sdk-go-v2/service/dynamodb v1.36.5
 	github.com/aws/smithy-go v1.22.0 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect

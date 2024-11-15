@@ -43,7 +43,7 @@ class TriviaCloudStack(Stack):
             f'ConnectID{construct_id}', 
             function_name=f'{construct_id}Connect',
             environment= {
-                'DATA_TABLE': data_table.table_name,
+                'DATA_TABLE':   data_table.table_name,
                 'PLAYER_TABLE': player_table.table_name,
             },
             entry='src/api/connect', 
@@ -55,23 +55,41 @@ class TriviaCloudStack(Stack):
             f'DisconnectID{construct_id}', 
             function_name=f'{construct_id}Disconnect',
             environment= {
-                'DATA_TABLE': data_table.table_name,
+                'DATA_TABLE':   data_table.table_name,
                 'PLAYER_TABLE': player_table.table_name,
             },
             entry='src/api/disconnect', 
             timeout=Duration.seconds(300)
         )
 
+        broadcast_connect_lambda = go_lambda.GoFunction(
+            self, 
+            f'BroadcastConnectID{construct_id}', 
+            function_name=f'{construct_id}BroadcastConnect',
+            environment= {
+                'DATA_TABLE':   data_table.table_name,
+                'PLAYER_TABLE': player_table.table_name,
+            },
+            entry='src/api/broadcast_connect', 
+            timeout=Duration.seconds(300)
+        ) 
+
         data_table.grant_read_write_data(connect_lambda)
         data_table.grant_read_write_data(disconnect_lambda)
+        data_table.grant_read_write_data(broadcast_connect_lambda)
         player_table.grant_read_write_data(connect_lambda)
         player_table.grant_read_write_data(disconnect_lambda)
+        player_table.grant_read_write_data(broadcast_connect_lambda)
 
         websocket_api.add_route('$connect', 
             integration=integrations.WebSocketLambdaIntegration(f'ConnectIntegration{construct_id}', connect_lambda)
         )
         websocket_api.add_route('$disconnect', 
             integration=integrations.WebSocketLambdaIntegration(f'DisconnectIntegration{construct_id}', disconnect_lambda)
+        )
+
+        websocket_api.add_route('broadcastConnect',
+            integration=integrations.WebSocketLambdaIntegration(f'BroadcastConnectIntegration{construct_id}', broadcast_connect_lambda)
         )
 
         api_stage = apigateway.WebSocketStage(
@@ -82,6 +100,8 @@ class TriviaCloudStack(Stack):
             auto_deploy=True
         )
 
+        websocket_api.grant_manage_connections(broadcast_connect_lambda)
+
         # Constructs for serverless react app
         website_bucket = s3.Bucket(
             self, 'WebsiteBucket', 
@@ -91,7 +111,7 @@ class TriviaCloudStack(Stack):
             removal_policy=RemovalPolicy.DESTROY, 
             auto_delete_objects=True
         )
-
+        
         CfnOutput(self, 'WebsiteBucketName', value=website_bucket.bucket_name, export_name='WebsiteBucketName')
         CfnOutput(self, 'WebsiteBucketURL', value=website_bucket.bucket_website_url, export_name='WebsiteBucketURL')
-        CfnOutput(self, 'WebsocketApiEndpoint', value=websocket_api.api_endpoint, export_name='WebsocketApiEndpoint')
+        CfnOutput(self, 'WebsocketApiEndpoint', value=api_stage.url, export_name='WebsocketApiEndpoint')
