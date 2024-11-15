@@ -24,6 +24,7 @@ var (
 	dbClient dynamodb.Client
 )
 
+// Init the connections to AWS services with the sdk config.
 func init() {
 	sdkConfig, err := config.LoadDefaultConfig(context.TODO())
 	if err != nil {
@@ -33,6 +34,7 @@ func init() {
 	dbClient = *dynamodb.NewFromConfig(sdkConfig)
 }
 
+// Generate a string that represents a game id.
 func generateGameId() string {
 	code := ""
 	for i := 0; i < 6; i++ {
@@ -43,12 +45,16 @@ func generateGameId() string {
 	return code
 }
 
+// This function is what is run by lambda, the ctx parameter is the context which provides information about the invocation, function, and execution
+// the req parameter has information about the requestion that was made
 func handleRequest(ctx context.Context, req *events.APIGatewayWebsocketProxyRequest) (response.Response, error) {
+	// Get information from the url query strings about the connection type and the username of the player
 	username := req.QueryStringParameters["username"]
 	connectionType := req.QueryStringParameters["connectiontype"]
 
+	// create a struct to hold the initial game information based on the connection type will
 	var game models.Game
-	if connectionType == "create" {
+	if connectionType == "create" { // create a new game
 		game = models.Game{
 			GameId: generateGameId(),
 			Players: []models.Player{
@@ -59,7 +65,7 @@ func handleRequest(ctx context.Context, req *events.APIGatewayWebsocketProxyRequ
 				},
 			},
 		}
-	} else if connectionType == "join" {
+	} else if connectionType == "join" { // join an existing game
 		id := req.QueryStringParameters["id"]
 
 		res, err := db.GetGame(ctx, &dbClient, id)
@@ -77,11 +83,13 @@ func handleRequest(ctx context.Context, req *events.APIGatewayWebsocketProxyRequ
 		game.Players = append(game.Players, player)
 	}
 
+	// save the game to dynamodb
 	_, err := db.InsertGame(ctx, &dbClient, game)
 	if err != nil {
 		return response.InternalSeverErrorResponse(), err
 	}
 
+	// save connection information to dynamodb
 	connection := models.Connection{
 		ConnectionId: req.RequestContext.ConnectionID,
 		GameId:       game.GameId,
@@ -94,6 +102,7 @@ func handleRequest(ctx context.Context, req *events.APIGatewayWebsocketProxyRequ
 	return response.OkResponseWithBody(game.GameId), nil
 }
 
+// start the lambda function with the handleRequest() function
 func main() {
 	lambda.Start(handleRequest)
 }

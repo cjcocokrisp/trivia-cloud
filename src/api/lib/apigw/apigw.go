@@ -7,6 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/apigatewaymanagementapi"
 )
 
+// connect to the api endpoint that is specified by the domain and stage passed
 func ResolveApiEndpoint(apiClient *apigatewaymanagementapi.Client, domain string, stage string) *apigatewaymanagementapi.Client {
 	var endpoint url.URL
 	endpoint.Scheme = "https"

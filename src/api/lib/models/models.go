@@ -1,5 +1,6 @@
 package models
 
+// contains structs that represent database items
 type Player struct {
 	Username     string `json:"username" dynamodbav:"username"`
 	ConnectionId string `json:"connectionId" dynamodbav:"connectionId"`

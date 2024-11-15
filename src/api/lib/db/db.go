@@ -21,6 +21,7 @@ var (
 	PlayerTableName = os.Getenv("PLAYER_TABLE")
 )
 
+// read a game from dynamodb
 func GetGame(ctx context.Context, db *dynamodb.Client, gameId string) (*models.Game, error) {
 	key, err := attributevalue.Marshal(gameId)
 	if err != nil {
@@ -55,6 +56,7 @@ func GetGame(ctx context.Context, db *dynamodb.Client, gameId string) (*models.G
 	return game, nil
 }
 
+// create a game in dynamodb
 func InsertGame(ctx context.Context, db *dynamodb.Client, game models.Game) (*models.Game, error) {
 	item, err := attributevalue.MarshalMap(game)
 	if err != nil {
@@ -82,6 +84,7 @@ func InsertGame(ctx context.Context, db *dynamodb.Client, game models.Game) (*mo
 	return &game, nil
 }
 
+// update a game in dynamodb
 func UpdateGame(ctx context.Context, db *dynamodb.Client, gameId string, updateGame models.Game) (*models.Game, error) {
 	key, err := attributevalue.Marshal(gameId)
 	if err != nil {
@@ -144,6 +147,7 @@ func UpdateGame(ctx context.Context, db *dynamodb.Client, gameId string, updateG
 	return game, nil
 }
 
+// get a connection from the player table
 func GetConnection(ctx context.Context, db *dynamodb.Client, connectionId string) (*models.Connection, error) {
 	key, err := attributevalue.Marshal(connectionId)
 	if err != nil {
@@ -178,6 +182,7 @@ func GetConnection(ctx context.Context, db *dynamodb.Client, connectionId string
 	return connection, nil
 }
 
+// create a connection in the player table
 func InsertConnection(ctx context.Context, db *dynamodb.Client, connection models.Connection) (*models.Connection, error) {
 	item, err := attributevalue.MarshalMap(connection)
 	if err != nil {

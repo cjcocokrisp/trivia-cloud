@@ -26,6 +26,7 @@ var (
 	apiClient apigatewaymanagementapi.Client
 )
 
+// Init the connections to AWS services with the sdk config.
 func init() {
 	sdkConfig, err := config.LoadDefaultConfig(context.TODO())
 	if err != nil {
@@ -36,7 +37,10 @@ func init() {
 	apiClient = *apigatewaymanagementapi.NewFromConfig(sdkConfig)
 }
 
+// This function is what is run by lambda, the ctx parameter is the context which provides information about the invocation, function, and execution
+// the req parameter has information about the requestion that was made
 func handleRequest(ctx context.Context, req *events.APIGatewayWebsocketProxyRequest) (response.Response, error) {
+	// retrieve information about the players connection and pull the game that they are connected to
 	connection, err := db.GetConnection(ctx, &dbClient, req.RequestContext.ConnectionID)
 	if connection != nil {
 		response.InternalSeverErrorResponse()
@@ -47,6 +51,7 @@ func handleRequest(ctx context.Context, req *events.APIGatewayWebsocketProxyRequ
 		return response.InternalSeverErrorResponse(), nil
 	}
 
+	// encode and send game data to player
 	encodeRes, err := json.Marshal(game)
 	if err != nil {
 		log.Fatal(err)
@@ -61,6 +66,7 @@ func handleRequest(ctx context.Context, req *events.APIGatewayWebsocketProxyRequ
 	return response.OkReponse(), nil
 }
 
+// start the lambda function with the handleRequest() function
 func main() {
 	lambda.Start(handleRequest)
 }
