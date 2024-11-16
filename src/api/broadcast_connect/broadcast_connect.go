@@ -2,12 +2,14 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"sync"
 
 	"trivia-cloud/backend/lib/apigw"
 	"trivia-cloud/backend/lib/db"
+	"trivia-cloud/backend/lib/models"
 	"trivia-cloud/backend/lib/response"
 
 	"github.com/aws/aws-lambda-go/events"
@@ -56,12 +58,14 @@ func handleRequest(ctx context.Context, req *events.APIGatewayWebsocketProxyRequ
 		return response.InternalSeverErrorResponse(), nil
 	}
 
-	// Get the username of the player by searching by connection id
+	// Get the username of the player by searching by connection id and compile list of users
+	var users []string
 	var newUser string
 	for _, element := range game.Players {
 		if element.ConnectionId == req.RequestContext.ConnectionID {
 			newUser = element.Username
 		}
+		users = append(users, element.Username)
 	}
 
 	// connect to endpoint
@@ -72,20 +76,39 @@ func handleRequest(ctx context.Context, req *events.APIGatewayWebsocketProxyRequ
 	for i := 0; i < len(game.Players); i++ {
 		wg.Add(1)
 
-		go func(client string) {
+		go func(client string, connected bool) {
 			defer wg.Done()
-			if client != req.RequestContext.ConnectionID {
-				_, err := endpointClient.PostToConnection(ctx, &apigatewaymanagementapi.PostToConnectionInput{
-					ConnectionId: aws.String(client),
-					Data:         []byte(newUser),
-				})
-
-				if err != nil {
-					log.Fatal(err)
+			var message any
+			if client != req.RequestContext.ConnectionID && connected {
+				// encode new user and send to message to client
+				message = models.Message[string]{
+					Type:    "new_connection",
+					Content: newUser,
+				}
+			} else if connected {
+				// this will be the new player so return the player list and game id
+				message = models.Message[models.GameInformation]{
+					Type: "connected",
+					Content: models.GameInformation{
+						GameId:  game.GameId,
+						Players: users,
+					},
 				}
 			}
+			encodedMessage, err := json.Marshal(message)
+			if err != nil {
+				log.Fatal(err)
+			}
 
-		}(game.Players[i].ConnectionId)
+			_, err = endpointClient.PostToConnection(ctx, &apigatewaymanagementapi.PostToConnectionInput{
+				ConnectionId: aws.String(client),
+				Data:         []byte(encodedMessage),
+			})
+			if err != nil {
+				log.Fatal(err)
+			}
+
+		}(game.Players[i].ConnectionId, game.Players[i].Connected)
 
 	}
 	wg.Wait()

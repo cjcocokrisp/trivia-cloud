@@ -19,7 +19,7 @@ function App() {
     if (!inGame)
     return (
         <div className="App">
-        <header className="App-header">
+        <div className="App-header">
             <img src={logo} className="App-logo" alt="logo" />
             <TextField id="outlined-basic" value={username} onChange={(event) => setUsername(event.target.value)} label="Username" variant='outlined'/>
             <TextField id="outlined-basic" onChange={(event) => setId(event.target.value)} label="Game ID" variant='outlined'/>
@@ -27,7 +27,7 @@ function App() {
                 <Button onClick={() => {setInGame(true); setConnectionType("create")}} variant="contained">Create</Button>
                 <Button onClick={validateCode} variant="contained">Join</Button>
             </div>
-        </header>
+        </div>
         </div>
     );
     else 

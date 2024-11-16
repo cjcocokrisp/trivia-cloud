@@ -16,3 +16,14 @@ type Connection struct {
 	ConnectionId string `json:"connectionId" dynamodbav:"connectionId"`
 	GameId       string `json:"gameId" dynamodbav:"gameId"`
 }
+
+// this struct is a message struct that uses a generic type for the content so it can be anything
+type Message[T any] struct {
+	Type    string `json:"type"`
+	Content T      `json:"content"`
+}
+
+type GameInformation struct {
+	GameId  string   `json:"gameId"`
+	Players []string `json:"players"`
+}

@@ -9,6 +9,7 @@ import (
 	//"trivia-cloud/backend/lib/models"
 	"trivia-cloud/backend/lib/apigw"
 	"trivia-cloud/backend/lib/db"
+	"trivia-cloud/backend/lib/models"
 	"trivia-cloud/backend/lib/response"
 
 	"github.com/aws/aws-lambda-go/events"
@@ -51,8 +52,14 @@ func handleRequest(ctx context.Context, req *events.APIGatewayWebsocketProxyRequ
 		return response.InternalSeverErrorResponse(), nil
 	}
 
+	// create generic message struct with the game model as its content
+	message := models.Message[models.Game]{
+		Type:    "default",
+		Content: *game,
+	}
+
 	// encode and send game data to player
-	encodeRes, err := json.Marshal(game)
+	encodedMessage, err := json.Marshal(message)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -60,7 +67,7 @@ func handleRequest(ctx context.Context, req *events.APIGatewayWebsocketProxyRequ
 	endpointClient := apigw.ResolveApiEndpoint(&apiClient, req.RequestContext.DomainName, req.RequestContext.Stage)
 	endpointClient.PostToConnection(ctx, &apigatewaymanagementapi.PostToConnectionInput{
 		ConnectionId: &req.RequestContext.ConnectionID,
-		Data:         encodeRes,
+		Data:         encodedMessage,
 	})
 
 	return response.OkReponse(), nil
