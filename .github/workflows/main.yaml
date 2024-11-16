@@ -23,6 +23,7 @@ jobs:
             npm install -g aws-cdk
             pip install -r requirements.txt
             sudo apt-get -y install jq
+            sudo apt -y install awscli
 
       - name: Boostrap CDK
         run: cdk bootstrap
