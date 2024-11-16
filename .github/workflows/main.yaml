@@ -41,4 +41,4 @@ jobs:
       - name: Deploy React app to AWS
         run: |
             chmod +x ./react-s3-deploy.sh
-            ./react-s3-deployment.sh
+            ./react-s3-deploy.sh
