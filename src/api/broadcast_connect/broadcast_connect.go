@@ -77,7 +77,7 @@ func handleRequest(ctx context.Context, req *events.APIGatewayWebsocketProxyRequ
 			if client != req.RequestContext.ConnectionID {
 				_, err := endpointClient.PostToConnection(ctx, &apigatewaymanagementapi.PostToConnectionInput{
 					ConnectionId: aws.String(client),
-					Data:         []byte(newUser + " has connected!"),
+					Data:         []byte(newUser),
 				})
 
 				if err != nil {
