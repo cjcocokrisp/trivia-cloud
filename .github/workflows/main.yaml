@@ -43,3 +43,5 @@ jobs:
             chmod +x ./react-s3-deploy.sh
             cd src/webapp && npm install && cd ../../
             ./react-s3-deploy.sh
+        env:
+          CI: ""
