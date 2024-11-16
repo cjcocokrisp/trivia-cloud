@@ -1,0 +1,44 @@
+.Game-logo {
+    height: 15vmin;
+    pointer-events: none;
+}
+
+.Game-header {
+    background-color: #59545b;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    gap: 5vh;
+}
+
+.Game-id {
+    font-size: 2rem;
+    color: white;
+}
+
+.Game-lobby-screen {
+    display: flex;
+    gap: 20vw;
+}
+
+.Game-lobby-information {
+    display: flex;
+    flex-direction: column;
+    gap: 2vh;
+}
+
+.Game-player {
+    color: white;
+}
+
+.Game-players-header {
+    font-size: 2rem;
+    color: white;
+}
+
+.Game-start-button {
+    max-height: 20vh;
+    align-self: center;
+}

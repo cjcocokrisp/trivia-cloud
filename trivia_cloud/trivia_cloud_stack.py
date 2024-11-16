@@ -20,10 +20,17 @@ class TriviaCloudStack(Stack):
         super().__init__(scope, construct_id, **kwargs)
 
         # Constructs for websocket connects + backend
-        table = dynamodb.Table(
+        data_table = dynamodb.Table(
             self, 
-            f'Table{construct_id}', 
-            partition_key=dynamodb.Attribute(name='gameID', type=dynamodb.AttributeType.NUMBER),
+            f'DataTable{construct_id}', 
+            partition_key=dynamodb.Attribute(name='gameId', type=dynamodb.AttributeType.STRING),
+            removal_policy=RemovalPolicy.DESTROY
+        )
+
+        player_table = dynamodb.Table(
+            self, 
+            f'PlayerTable{construct_id}', 
+            partition_key=dynamodb.Attribute(name='connectionId', type=dynamodb.AttributeType.STRING),
             removal_policy=RemovalPolicy.DESTROY
         )
 
@@ -36,7 +43,8 @@ class TriviaCloudStack(Stack):
             f'ConnectID{construct_id}', 
             function_name=f'{construct_id}Connect',
             environment= {
-                'DATA_TABLE': table.table_name,
+                'DATA_TABLE':   data_table.table_name,
+                'PLAYER_TABLE': player_table.table_name,
             },
             entry='src/api/connect', 
             timeout=Duration.seconds(300)
@@ -47,14 +55,45 @@ class TriviaCloudStack(Stack):
             f'DisconnectID{construct_id}', 
             function_name=f'{construct_id}Disconnect',
             environment= {
-                'DATA_TABLE': table.table_name,
+                'DATA_TABLE':   data_table.table_name,
+                'PLAYER_TABLE': player_table.table_name,
             },
             entry='src/api/disconnect', 
             timeout=Duration.seconds(300)
         )
 
-        table.grant_read_write_data(connect_lambda)
-        table.grant_read_write_data(disconnect_lambda)
+        default_lambda = go_lambda.GoFunction(
+            self, 
+            f'DefaultID{construct_id}', 
+            function_name=f'{construct_id}Default',
+            environment= {
+                'DATA_TABLE':   data_table.table_name,
+                'PLAYER_TABLE': player_table.table_name,
+            },
+            entry='src/api/default', 
+            timeout=Duration.seconds(300)
+        )
+
+        broadcast_connect_lambda = go_lambda.GoFunction(
+            self, 
+            f'BroadcastConnectID{construct_id}', 
+            function_name=f'{construct_id}BroadcastConnect',
+            environment= {
+                'DATA_TABLE':   data_table.table_name,
+                'PLAYER_TABLE': player_table.table_name,
+            },
+            entry='src/api/broadcast_connect', 
+            timeout=Duration.seconds(300)
+        )
+
+        data_table.grant_read_write_data(connect_lambda)
+        data_table.grant_read_write_data(disconnect_lambda)
+        data_table.grant_read_write_data(broadcast_connect_lambda)
+        data_table.grant_read_write_data(default_lambda)
+        player_table.grant_read_write_data(connect_lambda)
+        player_table.grant_read_write_data(disconnect_lambda)
+        player_table.grant_read_write_data(broadcast_connect_lambda)
+        player_table.grant_read_write_data(default_lambda)
 
         websocket_api.add_route('$connect', 
             integration=integrations.WebSocketLambdaIntegration(f'ConnectIntegration{construct_id}', connect_lambda)
@@ -62,6 +101,25 @@ class TriviaCloudStack(Stack):
         websocket_api.add_route('$disconnect', 
             integration=integrations.WebSocketLambdaIntegration(f'DisconnectIntegration{construct_id}', disconnect_lambda)
         )
+
+        websocket_api.add_route('$default', 
+            integration=integrations.WebSocketLambdaIntegration(f'DefaultIntegration{construct_id}', default_lambda)
+        )
+
+        websocket_api.add_route('broadcastConnect',
+            integration=integrations.WebSocketLambdaIntegration(f'BroadcastConnectIntegration{construct_id}', broadcast_connect_lambda)
+        )
+
+        api_stage = apigateway.WebSocketStage(
+            self,
+            f'ProdStage{construct_id}',
+            stage_name='prod',
+            web_socket_api=websocket_api,
+            auto_deploy=True
+        )
+
+        websocket_api.grant_manage_connections(default_lambda)
+        websocket_api.grant_manage_connections(broadcast_connect_lambda)
 
         # Constructs for serverless react app
         website_bucket = s3.Bucket(
@@ -73,12 +131,6 @@ class TriviaCloudStack(Stack):
             auto_delete_objects=True
         )
         
-        s3_deployment.BucketDeployment(
-            self, 
-            'WebsiteDeploy', 
-            sources=[s3_deployment.Source.asset('./src/webapp/build/')], 
-            destination_bucket=website_bucket
-        )
-
-        CfnOutput(self, 'BucketExport', value=website_bucket.bucket_website_url, export_name='WebsiteBucketName')
-        CfnOutput(self, 'WebsocketApiEndpoint', value=websocket_api.api_endpoint, export_name='WebsocketApiEndpoint')
+        CfnOutput(self, 'WebsiteBucketName', value=website_bucket.bucket_name, export_name='WebsiteBucketName')
+        CfnOutput(self, 'WebsiteBucketURL', value=website_bucket.bucket_website_url, export_name='WebsiteBucketURL')
+        CfnOutput(self, 'WebsocketApiEndpoint', value=api_stage.url, export_name='WebsocketApiEndpoint')

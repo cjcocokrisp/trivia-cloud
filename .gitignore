@@ -5,3 +5,5 @@ trivia_cloud/__pycache__/
 src/webapp/node_modules
 src/webapp/build
 src/api/connect/connect
+result.json
+src/webapp/src/config.js
