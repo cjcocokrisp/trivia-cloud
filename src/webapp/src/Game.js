@@ -31,8 +31,12 @@ function Game(props) {
                 setPlayers(data["content"]["players"]);
                 break;
             case "new_connection":
-                setPlayers(players => [...players, data["content"]])
+                setPlayers(players => [...players, data["content"]]);
                 break;   
+            case "disconnection":
+                console.log(data["content"]);
+                setPlayers(data["content"]);
+                break;
             }
         })
     }, [])

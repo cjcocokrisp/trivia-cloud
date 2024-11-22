@@ -120,6 +120,7 @@ class TriviaCloudStack(Stack):
 
         websocket_api.grant_manage_connections(default_lambda)
         websocket_api.grant_manage_connections(broadcast_connect_lambda)
+        websocket_api.grant_manage_connections(disconnect_lambda)
 
         # Constructs for serverless react app
         website_bucket = s3.Bucket(

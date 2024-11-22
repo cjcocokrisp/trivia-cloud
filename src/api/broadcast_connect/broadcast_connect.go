@@ -18,7 +18,6 @@ import (
 
 	//"github.com/aws/aws-sdk-go-v2/service/apigatewayv2"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 
 	//"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
@@ -65,7 +64,9 @@ func handleRequest(ctx context.Context, req *events.APIGatewayWebsocketProxyRequ
 		if element.ConnectionId == req.RequestContext.ConnectionID {
 			newUser = element.Username
 		}
-		users = append(users, element.Username)
+		if element.Connected {
+			users = append(users, element.Username)
+		}
 	}
 
 	// connect to endpoint
@@ -101,8 +102,8 @@ func handleRequest(ctx context.Context, req *events.APIGatewayWebsocketProxyRequ
 			}
 
 			_, err = endpointClient.PostToConnection(ctx, &apigatewaymanagementapi.PostToConnectionInput{
-				ConnectionId: aws.String(client),
-				Data:         []byte(encodedMessage),
+				ConnectionId: &client,
+				Data:         encodedMessage,
 			})
 			if err != nil {
 				log.Fatal(err)
