@@ -18,9 +18,7 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 
-	//"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
-	//"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 )
 
@@ -105,6 +103,8 @@ func handleRequest(ctx context.Context, req *events.APIGatewayWebsocketProxyRequ
 					Username:     username,
 					ConnectionId: req.RequestContext.ConnectionID,
 					Connected:    true,
+					Score:        0,
+					Submitted:    false,
 				},
 			},
 		}
@@ -122,6 +122,8 @@ func handleRequest(ctx context.Context, req *events.APIGatewayWebsocketProxyRequ
 			Username:     username,
 			ConnectionId: req.RequestContext.ConnectionID,
 			Connected:    true,
+			Score:        0,
+			Submitted:    false,
 		}
 		game.Players = append(game.Players, player)
 	}

@@ -13,3 +13,18 @@ func GetConnectedUsers(game models.Game) []string {
 	}
 	return users
 }
+
+func PrepareQuestionInfo(game models.Game) models.QuestionInformation {
+	question := game.Questions[game.CurrentQuestion]
+
+	var choices []string
+	choices = append(choices, question.Correct)
+	choices = append(choices, question.Incorrect...)
+
+	return models.QuestionInformation{
+		Difficulty: question.Difficulty,
+		Category:   question.Category,
+		Question:   question.Question,
+		Choices:    choices,
+	}
+}
