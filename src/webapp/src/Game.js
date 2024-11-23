@@ -1,7 +1,7 @@
 import './Game.css';
-import logo from './logo.svg'
 import config from "./config";
-import Button from '@mui/material/Button'
+import Lobby from './Lobby.js';
+
 import { useEffect, useState } from "react";
 
 function Game(props) {
@@ -41,25 +41,9 @@ function Game(props) {
         })
     }, [])
 
-    return (
-        <div className="Game-header">
-            <img src={logo} className="Game-logo" alt="logo" />
-            <div className="Game-lobby-screen">
-                <div className='Game-lobby-information'>
-                    <p className="Game-id">Game ID: {gameId}</p>
-                    <div>
-                        <p className='Game-players-header'>Players</p>
-                        {
-                            players.map((value) => {
-                                return (<p className='Game-player'>{value}</p>)
-                            })
-                        }
-                    </div>
-                </div>
-                <Button className="Game-start-button" variant="contained">Start</Button>
-            </div>
-        </div>
-    )
+    console.log(gameId);
+    
+    return (<Lobby GameId={gameId} players={players} />)
 }
 
 export default Game;
