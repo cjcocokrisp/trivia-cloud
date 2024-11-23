@@ -2,9 +2,13 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"math/rand"
+	"net/http"
+	"net/url"
 	"strconv"
 
 	"trivia-cloud/backend/lib/db"
@@ -55,8 +59,47 @@ func handleRequest(ctx context.Context, req *events.APIGatewayWebsocketProxyRequ
 	// create a struct to hold the initial game information based on the connection type will
 	var game models.Game
 	if connectionType == "create" { // create a new game
+		questionNum := req.QueryStringParameters["questionnum"]
+		categoryNum := req.QueryStringParameters["categorynum"]
+		categoryName := req.QueryStringParameters["categoryname"]
+
+		// prepare url for api request
+		apiURL := url.URL{
+			Scheme: "https",
+			Host:   "opentdb.com",
+			Path:   "api.php",
+		}
+		//var query url.Values
+		query := apiURL.Query()
+		query.Add("amount", questionNum)
+		if categoryNum != "none" {
+			query.Add("category", categoryNum)
+		}
+		query.Add("type", "multiple")
+		apiURL.RawQuery = query.Encode()
+
+		fmt.Println(apiURL.String())
+		// get questions for the game
+		res, err := http.Get(apiURL.String())
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer res.Body.Close()
+
+		data, err := io.ReadAll(res.Body)
+		if err != nil {
+			log.Fatal(err)
+		}
+		var questions models.OpenTriviaDBResponse
+		json.Unmarshal(data, &questions)
+
 		game = models.Game{
-			GameId: generateGameId(),
+			GameId:          generateGameId(),
+			Started:         false,
+			CurrentQuestion: 0,
+			NumQuestions:    questionNum,
+			Questions:       questions.Results,
+			Category:        categoryName,
 			Players: []models.Player{
 				{
 					Username:     username,

@@ -91,8 +91,10 @@ func handleRequest(ctx context.Context, req *events.APIGatewayWebsocketProxyRequ
 				message = models.Message[models.GameInformation]{
 					Type: "connected",
 					Content: models.GameInformation{
-						GameId:  game.GameId,
-						Players: users,
+						GameId:       game.GameId,
+						Players:      users,
+						NumQuestions: game.NumQuestions,
+						Category:     game.Category,
 					},
 				}
 			}
