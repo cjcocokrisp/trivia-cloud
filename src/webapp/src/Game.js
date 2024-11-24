@@ -5,7 +5,7 @@ import Lobby from './Lobby.js';
 import { useEffect, useState } from "react";
 
 function Game(props) {
-    const { connectiontype, username, id } = props;
+    const { connectiontype, username, numQuestions, category, id } = props;
     const [ players, setPlayers ] = useState([username]);
     const [ gameId, setGameId ] = useState("");
 
@@ -32,7 +32,7 @@ function Game(props) {
                 break;
             case "new_connection":
                 setPlayers(players => [...players, data["content"]]);
-                break;   
+                break;
             case "disconnection":
                 console.log(data["content"]);
                 setPlayers(data["content"]);
@@ -42,7 +42,7 @@ function Game(props) {
     }, [])
 
     console.log(gameId);
-    
+
     return (<Lobby GameId={gameId} players={players} />)
 }
 
