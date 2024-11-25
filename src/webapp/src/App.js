@@ -11,12 +11,14 @@ import Box from '@mui/material/Box';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import InputLabel from '@mui/material/InputLabel';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 function SimpleDialog({open, onClose, numQuestions, setNumQuestions, category, setCategory, showNumWarning, showCategoryWarning, createGame}) {
+    const [categories, setCategories] = useState([])
     const handleClose = () => {
         console.log();
     }
+
     const handleNumQuestionsChange = (event) => {
         const inputValue = event.target.value
         if (/^\d*$/.test(inputValue) ) {
@@ -26,10 +28,20 @@ function SimpleDialog({open, onClose, numQuestions, setNumQuestions, category, s
             console.log('invalid input "${inputValue}"')
         }
     }
+
+    useEffect(() => {
+        fetch('https://opentdb.com/api_category.php').then(res => {
+            res.json().then(data => {
+                setCategories(data['trivia_categories']);
+            });
+        });
+    }, []);
+
     const handleCategoryChange = (event) => {
-        const selectedCategory = event.target.value
+        const selectedCategory = categories[event.target.value]
         setCategory(selectedCategory)
     }
+
     return (
         <div className='simple-dialog'>
             <Dialog open={open} onClose={onClose}>
@@ -59,7 +71,12 @@ function SimpleDialog({open, onClose, numQuestions, setNumQuestions, category, s
                                 label="Category"
                                 onChange={handleCategoryChange}
                             >
-                                <MenuItem value={9}>General Knowledge</MenuItem>
+                                {
+                                    categories.map((value, index) => {
+                                        <MenuItem value={index}>{value['name']}</MenuItem>
+                                    })
+                                }
+                                {/* <MenuItem value={9}>General Knowledge</MenuItem>
                                 <MenuItem value={10}>Entertainment: Books</MenuItem>
                                 <MenuItem value={11}>Entertainment: Film</MenuItem>
                                 <MenuItem value={12}>Entertainment: Music</MenuItem>
@@ -82,7 +99,7 @@ function SimpleDialog({open, onClose, numQuestions, setNumQuestions, category, s
                                 <MenuItem value={29}>Entertainment: Comics</MenuItem>
                                 <MenuItem value={30}>Science: Gadgets</MenuItem>
                                 <MenuItem value={31}>Entertainment: Japanese Anime & Manga</MenuItem>
-                                <MenuItem value={32}>Entertainment: Cartoon & Animations</MenuItem>
+                                <MenuItem value={32}>Entertainment: Cartoon & Animations</MenuItem> */}
           
                             </Select>
                     </FormControl>
@@ -98,6 +115,7 @@ function SimpleDialog({open, onClose, numQuestions, setNumQuestions, category, s
         
     )
 }
+
 function App() {
     const [ username, setUsername ] = useState("Player");
     const [ id, setId] = useState("");
