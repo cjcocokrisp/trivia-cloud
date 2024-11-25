@@ -33,6 +33,7 @@ function SimpleDialog({open, onClose, numQuestions, setNumQuestions, category, s
         fetch('https://opentdb.com/api_category.php').then(res => {
             res.json().then(data => {
                 setCategories(data['trivia_categories']);
+                console.log(categories);
             });
         });
     }, []);
@@ -67,13 +68,13 @@ function SimpleDialog({open, onClose, numQuestions, setNumQuestions, category, s
                             <Select
                                 labelId="select-label"
                                 id="simple-select"
-                                value={category}
+                                value={category['name']}
                                 label="Category"
                                 onChange={handleCategoryChange}
                             >
                                 {
                                     categories.map((value, index) => {
-                                        <MenuItem value={index}>{value['name']}</MenuItem>
+                                        return (<MenuItem value={index}>{value['name']}</MenuItem>)
                                     })
                                 }
                                 {/* <MenuItem value={9}>General Knowledge</MenuItem>
