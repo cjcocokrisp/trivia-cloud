@@ -2,12 +2,10 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"log"
 	"sync"
 
-	//"trivia-cloud/backend/lib/db"
-	//"trivia-cloud/backend/lib/models"
-	"encoding/json"
 	"trivia-cloud/backend/lib"
 	"trivia-cloud/backend/lib/apigw"
 	"trivia-cloud/backend/lib/db"
@@ -19,9 +17,8 @@ import (
 
 	//"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
-	"github.com/aws/aws-sdk-go-v2/service/apigatewaymanagementapi"
-
 	//"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
+	"github.com/aws/aws-sdk-go-v2/service/apigatewaymanagementapi"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 )
 
@@ -44,7 +41,7 @@ func init() {
 // This function is what is run by lambda, the ctx parameter is the context which provides information about the invocation, function, and execution
 // the req parameter has information about the requestion that was made
 func handleRequest(ctx context.Context, req *events.APIGatewayWebsocketProxyRequest) (response.Response, error) {
-	// Get information about the players connection and game they are connected to.
+	// retrieve information about the players connection and pull the game that they are connected to
 	connection, err := db.GetConnection(ctx, &dbClient, req.RequestContext.ConnectionID)
 	if connection != nil {
 		response.InternalSeverErrorResponse()
@@ -55,51 +52,52 @@ func handleRequest(ctx context.Context, req *events.APIGatewayWebsocketProxyRequ
 		return response.InternalSeverErrorResponse(), nil
 	}
 
-	// set their connection flag to false
-	for index, element := range game.Players {
-		if element.ConnectionId == req.RequestContext.ConnectionID {
-			game.Players[index].Connected = false
+	if !game.Started {
+		game.Started = true
+		_, err = db.InsertGame(ctx, &dbClient, *game)
+		if err != nil {
+			log.Fatal(err)
 		}
+
+		questionInfo := lib.PrepareQuestionInfo(*game)
+
+		endpointClient := apigw.ResolveApiEndpoint(&apiClient, req.RequestContext.DomainName, req.RequestContext.Stage)
+
+		var wg sync.WaitGroup
+		for i := 0; i < len(game.Players); i++ {
+			wg.Add(1)
+
+			go func(client string, connected bool) {
+				defer wg.Done()
+				if connected {
+					message := models.Message[models.QuestionInformation]{
+						Type:    "question_start",
+						Content: questionInfo,
+					}
+
+					encodedMessage, err := json.Marshal(message)
+					if err != nil {
+						log.Fatal(err)
+					}
+
+					endpointClient.PostToConnection(ctx, &apigatewaymanagementapi.PostToConnectionInput{
+						ConnectionId: &client,
+						Data:         encodedMessage,
+					})
+				}
+
+			}(game.Players[i].ConnectionId, game.Players[i].Connected)
+
+		}
+		wg.Wait()
+
 	}
 
-	// update database with new connection status
-	_, err = db.InsertGame(ctx, &dbClient, *game)
-	if err != nil {
-		return response.InternalSeverErrorResponse(), nil
-	}
-
-	users := lib.GetConnectedUsers(*game)
-	var usernames []string
-	for _, element := range users {
-		usernames = append(usernames, element.Username)
-	}
-
-	endpointClient := apigw.ResolveApiEndpoint(&apiClient, req.RequestContext.DomainName, req.RequestContext.Stage)
-	var wg sync.WaitGroup
-	for i := 0; i < len(game.Players); i++ {
-		wg.Add(1)
-		go func(client string, connected bool) {
-			defer wg.Done()
-			if connected {
-				message := models.Message[[]string]{
-					Type:    "disconnection",
-					Content: usernames,
-				}
-				encodedMessage, err := json.Marshal(message)
-				if err != nil {
-					log.Fatal(err)
-				}
-				_, err = endpointClient.PostToConnection(ctx, &apigatewaymanagementapi.PostToConnectionInput{
-					ConnectionId: &client,
-					Data:         encodedMessage,
-				})
-				if err != nil {
-					log.Fatal(err)
-				}
-			}
-		}(game.Players[i].ConnectionId, game.Players[i].Connected)
-	}
-	wg.Wait()
+	// endpointClient := apigw.ResolveApiEndpoint(&apiClient, req.RequestContext.DomainName, req.RequestContext.Stage)
+	// endpointClient.PostToConnection(ctx, &apigatewaymanagementapi.PostToConnectionInput{
+	// 	ConnectionId: &req.RequestContext.ConnectionID,
+	// 	Data:         encodedMessage,
+	// })
 
 	return response.OkReponse(), nil
 }

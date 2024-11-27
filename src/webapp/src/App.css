@@ -27,3 +27,12 @@
     display: flex;
     gap: 5vw;
 }
+.simple-dialog {
+  display:flex;
+}
+.dialog-title {
+  font-family: 'Arial', sans-serif;
+  font-size: 48px;
+  font-weight: bold;
+  color: #333;
+}
