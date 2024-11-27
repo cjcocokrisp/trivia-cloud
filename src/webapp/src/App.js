@@ -1,4 +1,3 @@
-import React from 'react';
 import Game from './Game';
 import logo from './logo.svg';
 import './App.css';
