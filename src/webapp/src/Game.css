@@ -42,3 +42,26 @@
     max-height: 20vh;
     align-self: center;
 }
+
+.Question-container {
+    gap: 2vh
+}
+
+.Question-header-text {
+    color: white;
+    text-align: center;
+    font-size: 2rem;
+}
+
+.Question-buttons {
+    display: flex;
+    width: 50vw;
+    flex-direction: column;
+    align-self: center;
+    gap: 2vh;
+}
+
+.Question-button  {
+    width: 50vw;
+    height: 10vh;
+}

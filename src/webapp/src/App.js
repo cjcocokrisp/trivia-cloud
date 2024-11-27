@@ -37,12 +37,12 @@ function SimpleDialog({
         fetch('https://opentdb.com/api_category.php')
             .then((res) => res.json())
             .then((data) => {
-                setCategories(data.trivia_categories || []);
+                setCategories(data.trivia_categories);
             });
     }, []);
 
     const handleCategoryChange = (event) => {
-        setCategory(event.target.value);
+        setCategory(categories[event.target.value]);
     };
 
     return (
@@ -68,10 +68,6 @@ function SimpleDialog({
                     label="Number of Questions"
                     variant="outlined"
                     fullWidth
-                    inputProps={{
-                        inputMode: 'numeric',
-                        pattern: '[0-9]*',
-                    }}
                 />
                 {showNumWarning && (
                     <div style={{ color: 'red', marginTop: '5px', fontSize: '0.9rem' }}>
@@ -86,9 +82,9 @@ function SimpleDialog({
                         value={category}
                         onChange={handleCategoryChange}
                     >
-                        {categories.map((cat) => (
-                            <MenuItem key={cat.id} value={cat.id}>
-                                {cat.name}
+                        {categories.map((cat, index) => (
+                            <MenuItem key={cat['id']} value={index}>
+                                {cat['name']}
                             </MenuItem>
                         ))}
                     </Select>
