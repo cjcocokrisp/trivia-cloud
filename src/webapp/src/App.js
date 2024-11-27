@@ -83,8 +83,8 @@ function App() {
                         <Button
                             onClick={() => {
                                 setOpenDialog(false);
-                                setInGame(true); // Transition to Game
-                                setConnectionType("create"); // Maintain "create" connection type
+                                setInGame(true); 
+                                setConnectionType("create"); 
                             }}
                             variant="contained"
                         >
@@ -100,8 +100,8 @@ function App() {
                 connectiontype={connectiontype}
                 username={username}
                 id={id}
-                numQuestions={numQuestions} // Pass numQuestions to Game
-                category={category} // Pass category to Game
+                numQuestions={numQuestions}
+                category={category} 
             />
         );
 }
