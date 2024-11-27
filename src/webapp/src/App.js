@@ -3,10 +3,6 @@ import logo from './logo.svg';
 import './App.css';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
-import Dialog from '@mui/material/Dialog';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
-import DialogTitle from '@mui/material/DialogTitle';
 import { useState } from 'react';
 
 function App() {
@@ -14,11 +10,6 @@ function App() {
     const [id, setId] = useState("");
     const [connectiontype, setConnectionType] = useState("");
     const [inGame, setInGame] = useState(false);
-
-    // New state for dialog box
-    const [openDialog, setOpenDialog] = useState(false);
-    const [numQuestions, setNumQuestions] = useState(10);
-    const [category, setCategory] = useState("History");
 
     const validateCode = () => {
         setInGame(true);
@@ -44,8 +35,13 @@ function App() {
                         variant="outlined"
                     />
                     <div className="button-container">
-                        {/* Create Button Opens Dialog */}
-                        <Button onClick={() => setOpenDialog(true)} variant="contained">
+                        <Button
+                            onClick={() => {
+                                setInGame(true);
+                                setConnectionType("create");
+                            }}
+                            variant="contained"
+                        >
                             Create
                         </Button>
                         <Button onClick={validateCode} variant="contained">
@@ -53,45 +49,6 @@ function App() {
                         </Button>
                     </div>
                 </div>
-
-                {/* Dialog Box */}
-                <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
-                    <DialogTitle>Game Settings</DialogTitle>
-                    <DialogContent>
-                        <TextField
-                            id="number-of-questions"
-                            label="Number of Questions"
-                            type="number"
-                            value={numQuestions}
-                            onChange={(e) => setNumQuestions(e.target.value)}
-                            fullWidth
-                            variant="outlined"
-                            margin="dense"
-                        />
-                        <TextField
-                            id="category"
-                            label="Category"
-                            value={category}
-                            onChange={(e) => setCategory(e.target.value)}
-                            fullWidth
-                            variant="outlined"
-                            margin="dense"
-                        />
-                    </DialogContent>
-                    <DialogActions>
-                        <Button onClick={() => setOpenDialog(false)}>Cancel</Button>
-                        <Button
-                            onClick={() => {
-                                setOpenDialog(false);
-                                setInGame(true); 
-                                setConnectionType("create"); 
-                            }}
-                            variant="contained"
-                        >
-                            Save
-                        </Button>
-                    </DialogActions>
-                </Dialog>
             </div>
         );
     else
@@ -100,11 +57,8 @@ function App() {
                 connectiontype={connectiontype}
                 username={username}
                 id={id}
-                numQuestions={numQuestions}
-                category={category} 
             />
         );
 }
 
 export default App;
-
