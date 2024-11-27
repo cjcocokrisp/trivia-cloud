@@ -7,6 +7,7 @@ type Player struct {
 	Connected    bool   `json:"connected" dynamodbav:"connected"`
 	Score        int    `json:"score" dynamodbav:"score"`
 	Submitted    bool   `json:"submitted" dynamodbav:"submitted"`
+	Correct      bool   `json:"correct" dynamodbav:"correct"`
 }
 
 type Game struct {
@@ -56,4 +57,14 @@ type QuestionInformation struct {
 	Category   string   `json:"category"`
 	Question   string   `json:"question"`
 	Choices    []string `json:"choices"`
+}
+
+type PlayerAnswer struct {
+	Action string `json:"action"`
+	Answer string `json:"answer"`
+}
+
+type AnswerResponse struct {
+	Correct      bool `json:"correct"`
+	AllSubmitted bool `json:"allsubmitted"`
 }

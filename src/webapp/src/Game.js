@@ -13,6 +13,9 @@ function Game(props) {
     const [ currentQuestion, setCurrentQuestion ] = useState(null);
     const [ questionNum, setQuestionNum ] = useState(0);
     const [ websocket, setWebsocket ] = useState(null);
+    const [ categoryName, setCategoryName ] = useState(category['name']);
+    const [ submitted, setSubmitted ] = useState(false);
+    const [ correct, setCorrect ] = useState(false);
 
     let url = new URL(config.API_ENDPOINT);
     url.searchParams.append("connectiontype", connectiontype);
@@ -37,6 +40,8 @@ function Game(props) {
             case "connected":
                 setGameId(data["content"]["gameId"]);
                 setPlayers(data["content"]["players"]);
+                setQuestionNum(data["content"]["numQuestions"]);
+                setCategoryName(data["content"]["category"]);
                 break;
             case "new_connection":
                 setPlayers(players => [...players, data["content"]]);
@@ -49,6 +54,12 @@ function Game(props) {
                 setCurrentQuestion(data["content"]);
                 setGameState('Playing');
                 break;
+            case "submission":
+                setSubmitted(true);
+                setCorrect(data['content']['correct']);
+                if (data['content']['allsubmitted']) {
+                    console.log('send command to tell players to switch to results screen');
+                }
             }
         });
 
@@ -60,7 +71,7 @@ function Game(props) {
         return (<Lobby 
                     GameId={gameId} 
                     players={players} 
-                    category={category['name']} 
+                    category={categoryName} 
                     questionnum={numQuestions} 
                     connection={websocket}
                 />
@@ -70,6 +81,7 @@ function Game(props) {
                     question={currentQuestion}
                     questionNum={questionNum}
                     connection={websocket}
+                    submitted={submitted}
                 />
         )
     }
