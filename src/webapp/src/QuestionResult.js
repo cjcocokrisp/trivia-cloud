@@ -1,5 +1,6 @@
 import './Game.css'
 import Button from '@mui/material/Button'
+import he from 'he'
 
 function QuestionResult(props) {
     const correct = props['correct'];
@@ -35,7 +36,7 @@ function QuestionResult(props) {
                 <p className='Question-header-text'>Question Result:</p>
                 <p className='Question-header-text'>{correct ? "Correct" : "Incorrect"}</p>
                 <p className='Question-header-text'>Correct Answer:</p>
-                <p className='Question-header-text'>{correctAnswer}</p>
+                <p className='Question-header-text'>{he.decode(correctAnswer)}</p>
                 {
                     determineNextContent()
                 }

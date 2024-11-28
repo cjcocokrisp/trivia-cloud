@@ -58,6 +58,7 @@
     width: 50vw;
     flex-direction: column;
     align-self: center;
+    align-items: center;
     gap: 2vh;
 }
 

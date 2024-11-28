@@ -1,6 +1,7 @@
 package lib
 
 import (
+	"sort"
 	"trivia-cloud/backend/lib/models"
 )
 
@@ -27,4 +28,11 @@ func PrepareQuestionInfo(game models.Game) models.QuestionInformation {
 		Question:   question.Question,
 		Choices:    choices,
 	}
+}
+
+func SortPlayerByScore(players []models.Player) []models.Player {
+	sort.SliceStable(players, func(x, y int) bool {
+		return players[x].Score > players[y].Score
+	})
+	return players
 }

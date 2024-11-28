@@ -85,9 +85,10 @@ func handleRequest(ctx context.Context, req *events.APIGatewayWebsocketProxyRequ
 			if connected {
 				var message any
 				if gameover {
-					message = models.Message[string]{
+					players := lib.SortPlayerByScore(game.Players)
+					message = models.Message[[]models.Player]{
 						Type:    "gameover",
-						Content: "TODO: SEND SORTED LIST OF PLAYERS BY SCORE TO SHOW WINNER",
+						Content: players,
 					}
 				} else {
 					question := lib.PrepareQuestionInfo(*game)

@@ -5,6 +5,7 @@ import Question from './Question.js'
 import QuestionResult from './QuestionResult.js';
 
 import { useEffect, useState } from "react";
+import EndResult from './EndResult.js';
 
 function Game(props) {
     const { connectiontype, username, numQuestions, category, id } = props;
@@ -17,6 +18,7 @@ function Game(props) {
     const [ categoryName, setCategoryName ] = useState(category['name']);
     const [ submitted, setSubmitted ] = useState(false);
     const [ correct, setCorrect ] = useState(false);
+    const [ rankings, setRankings ] = useState([]);
 
     let url = new URL(config.API_ENDPOINT);
     url.searchParams.append("connectiontype", connectiontype);
@@ -86,7 +88,8 @@ function Game(props) {
                 setGameState('Playing');
                 break;
             case "gameover":
-                console.log('GAME OVER SHOW RESULTS!');
+                setRankings(data['content']);
+                setGameState("Rankings");
                 break;
             }
         });
@@ -120,6 +123,11 @@ function Game(props) {
                     submitted={submitted}
                 />
             
+        )
+    case 'Rankings':
+        return (<EndResult 
+                    rankings={rankings}
+                />
         )
     }
 }
