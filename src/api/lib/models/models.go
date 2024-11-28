@@ -68,3 +68,8 @@ type AnswerResponse struct {
 	Correct      bool `json:"correct"`
 	AllSubmitted bool `json:"allsubmitted"`
 }
+
+type NextQuestion struct {
+	QuestionNum         int                 `json:"num"`
+	QuestionInformation QuestionInformation `json:"information"`
+}

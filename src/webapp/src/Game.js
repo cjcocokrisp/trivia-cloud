@@ -51,7 +51,7 @@ function Game(props) {
                 setPlayers(data["content"]);
                 break;
             case "question_start":
-                setQuestionNum(questionNum + 1);
+                setQuestionNum(1);
                 setCurrentQuestion(data["content"]);
                 setGameState('Playing');
                 break;
@@ -73,8 +73,20 @@ function Game(props) {
             case "next_submission":
                 setSubmitted(true);
                 if (data['content']) {
-                    console.log('go to next question');
+                    const payload = {
+                        action: "sendQuestion"
+                    }
+                    socket.send(JSON.stringify(payload));
                 }
+                break;
+            case "next_question":
+                setQuestionNum(data['content']['num'] + 1);
+                setSubmitted(false);
+                setCurrentQuestion(data['content']['information']);
+                setGameState('Playing');
+                break;
+            case "gameover":
+                console.log('GAME OVER SHOW RESULTS!');
                 break;
             }
         });

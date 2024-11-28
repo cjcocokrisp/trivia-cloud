@@ -4,10 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"log"
+	"strconv"
 	"sync"
 
 	//"trivia-cloud/backend/lib/db"
 	//"trivia-cloud/backend/lib/models"
+	"trivia-cloud/backend/lib"
 	"trivia-cloud/backend/lib/apigw"
 	"trivia-cloud/backend/lib/db"
 	"trivia-cloud/backend/lib/models"
@@ -58,6 +60,17 @@ func handleRequest(ctx context.Context, req *events.APIGatewayWebsocketProxyRequ
 		game.Players[index].Correct = false
 	}
 
+	numQuestions, err := strconv.Atoi(game.NumQuestions)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	var gameover bool
+	game.CurrentQuestion++
+	if game.CurrentQuestion == numQuestions {
+		gameover = true
+	}
+
 	_, err = db.InsertGame(ctx, &dbClient, *game)
 	if err != nil {
 		log.Fatal(err)
@@ -70,9 +83,21 @@ func handleRequest(ctx context.Context, req *events.APIGatewayWebsocketProxyRequ
 		go func(client string, connected bool) {
 			defer wg.Done()
 			if connected {
-				message := models.Message[string]{
-					Type:    "view_result",
-					Content: game.Questions[game.CurrentQuestion].Correct,
+				var message any
+				if gameover {
+					message = models.Message[string]{
+						Type:    "gameover",
+						Content: "TODO: SEND SORTED LIST OF PLAYERS BY SCORE TO SHOW WINNER",
+					}
+				} else {
+					question := lib.PrepareQuestionInfo(*game)
+					message = models.Message[models.NextQuestion]{
+						Type: "next_question",
+						Content: models.NextQuestion{
+							QuestionNum:         game.CurrentQuestion,
+							QuestionInformation: question,
+						},
+					}
 				}
 				encodedMessage, err := json.Marshal(message)
 				if err != nil {
