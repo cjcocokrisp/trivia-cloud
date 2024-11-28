@@ -2,6 +2,7 @@ import './Game.css';
 import config from "./config";
 import Lobby from './Lobby.js';
 import Question from './Question.js'
+import QuestionResult from './QuestionResult.js';
 
 import { useEffect, useState } from "react";
 
@@ -58,8 +59,23 @@ function Game(props) {
                 setSubmitted(true);
                 setCorrect(data['content']['correct']);
                 if (data['content']['allsubmitted']) {
-                    console.log('send command to tell players to switch to results screen');
+                    const payload = {
+                        action: "sendResult"
+                    }
+                    socket.send(JSON.stringify(payload));
                 }
+                break;
+            case "view_result":
+                setSubmitted(false);
+                setGameState('QuestionResult');
+                setCurrentQuestion(data["content"]);
+                break;
+            case "next_submission":
+                setSubmitted(true);
+                if (data['content']) {
+                    console.log('go to next question');
+                }
+                break;
             }
         });
 
@@ -72,7 +88,7 @@ function Game(props) {
                     GameId={gameId} 
                     players={players} 
                     category={categoryName} 
-                    questionnum={numQuestions} 
+                    questionnum={questionNum} 
                     connection={websocket}
                 />
         )
@@ -83,6 +99,15 @@ function Game(props) {
                     connection={websocket}
                     submitted={submitted}
                 />
+        )
+    case 'QuestionResult':
+        return (<QuestionResult
+                    correct={correct}
+                    correctAnswer={currentQuestion}
+                    connection={websocket}
+                    submitted={submitted}
+                />
+            
         )
     }
 }

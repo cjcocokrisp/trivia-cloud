@@ -110,18 +110,46 @@ class TriviaCloudStack(Stack):
             timeout=Duration.seconds(300)
         )
 
+        send_result_lambda = go_lambda.GoFunction(
+            self,
+            f'SendResult{construct_id}',
+            function_name=f'{construct_id}SendResult',
+            environment= {
+                'DATA_TABLE':   data_table.table_name,
+                'PLAYER_TABLE': player_table.table_name,
+            },
+            entry='src/api/send_result',
+            timeout=Duration.seconds(300)
+        )
+
+        submit_next_lambda = go_lambda.GoFunction(
+            self,
+            f'SubmitNext{construct_id}',
+            function_name=f'{construct_id}SubmitNext',
+            environment= {
+                'DATA_TABLE':   data_table.table_name,
+                'PLAYER_TABLE': player_table.table_name,
+            },
+            entry='src/api/submit_next',
+            timeout=Duration.seconds(300)
+        )
+
         data_table.grant_read_write_data(connect_lambda)
         data_table.grant_read_write_data(disconnect_lambda)
         data_table.grant_read_write_data(broadcast_connect_lambda)
         data_table.grant_read_write_data(default_lambda)
         data_table.grant_read_write_data(start_game_lambda)
         data_table.grant_read_write_data(submit_answer_lambda)
+        data_table.grant_read_write_data(send_result_lambda)
+        data_table.grant_read_write_data(submit_next_lambda)
         player_table.grant_read_write_data(connect_lambda)
         player_table.grant_read_write_data(disconnect_lambda)
         player_table.grant_read_write_data(broadcast_connect_lambda)
         player_table.grant_read_write_data(default_lambda)
         player_table.grant_read_write_data(start_game_lambda)
         player_table.grant_read_write_data(submit_answer_lambda)
+        player_table.grant_read_write_data(send_result_lambda)
+        player_table.grant_read_write_data(submit_next_lambda)
 
         websocket_api.add_route('$connect', 
             integration=integrations.WebSocketLambdaIntegration(f'ConnectIntegration{construct_id}', connect_lambda)
@@ -146,6 +174,14 @@ class TriviaCloudStack(Stack):
             integration=integrations.WebSocketLambdaIntegration(f'SubmitAnswerIntegration{construct_id}', submit_answer_lambda)
         )
 
+        websocket_api.add_route('sendResult',
+            integration=integrations.WebSocketLambdaIntegration(f'SendResultIntegration{construct_id}', send_result_lambda)
+        )
+
+        websocket_api.add_route('submitNext',
+            integration=integrations.WebSocketLambdaIntegration(f'SubmitNextIntegration{construct_id}', submit_next_lambda)
+        )
+
         api_stage = apigateway.WebSocketStage(
             self,
             f'ProdStage{construct_id}',
@@ -159,6 +195,8 @@ class TriviaCloudStack(Stack):
         websocket_api.grant_manage_connections(disconnect_lambda)
         websocket_api.grant_manage_connections(start_game_lambda)
         websocket_api.grant_manage_connections(submit_answer_lambda)
+        websocket_api.grant_manage_connections(send_result_lambda)
+        websocket_api.grant_manage_connections(submit_next_lambda)
 
         # Constructs for serverless react app
         website_bucket = s3.Bucket(
