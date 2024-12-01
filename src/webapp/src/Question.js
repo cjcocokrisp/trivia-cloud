@@ -28,7 +28,7 @@ function Question(props) {
                     className='Question-button'
                     onClick={submitAnswer(choice)}
                 >
-                    {choice}
+                    {he.decode(choice)}
                 </Button>
                 )
             })

@@ -2,8 +2,10 @@ import './Game.css';
 import config from "./config";
 import Lobby from './Lobby.js';
 import Question from './Question.js'
+import QuestionResult from './QuestionResult.js';
 
 import { useEffect, useState } from "react";
+import EndResult from './EndResult.js';
 
 function Game(props) {
     const { connectiontype, username, numQuestions, category, id } = props;
@@ -16,6 +18,7 @@ function Game(props) {
     const [ categoryName, setCategoryName ] = useState(category['name']);
     const [ submitted, setSubmitted ] = useState(false);
     const [ correct, setCorrect ] = useState(false);
+    const [ rankings, setRankings ] = useState([]);
 
     let url = new URL(config.API_ENDPOINT);
     url.searchParams.append("connectiontype", connectiontype);
@@ -50,7 +53,7 @@ function Game(props) {
                 setPlayers(data["content"]);
                 break;
             case "question_start":
-                setQuestionNum(questionNum + 1);
+                setQuestionNum(1);
                 setCurrentQuestion(data["content"]);
                 setGameState('Playing');
                 break;
@@ -58,8 +61,36 @@ function Game(props) {
                 setSubmitted(true);
                 setCorrect(data['content']['correct']);
                 if (data['content']['allsubmitted']) {
-                    console.log('send command to tell players to switch to results screen');
+                    const payload = {
+                        action: "sendResult"
+                    }
+                    socket.send(JSON.stringify(payload));
                 }
+                break;
+            case "view_result":
+                setSubmitted(false);
+                setGameState('QuestionResult');
+                setCurrentQuestion(data["content"]);
+                break;
+            case "next_submission":
+                setSubmitted(true);
+                if (data['content']) {
+                    const payload = {
+                        action: "sendQuestion"
+                    }
+                    socket.send(JSON.stringify(payload));
+                }
+                break;
+            case "next_question":
+                setQuestionNum(data['content']['num'] + 1);
+                setSubmitted(false);
+                setCurrentQuestion(data['content']['information']);
+                setGameState('Playing');
+                break;
+            case "gameover":
+                setRankings(data['content']);
+                setGameState("Rankings");
+                break;
             }
         });
 
@@ -72,7 +103,7 @@ function Game(props) {
                     GameId={gameId} 
                     players={players} 
                     category={categoryName} 
-                    questionnum={numQuestions} 
+                    questionnum={questionNum} 
                     connection={websocket}
                 />
         )
@@ -82,6 +113,20 @@ function Game(props) {
                     questionNum={questionNum}
                     connection={websocket}
                     submitted={submitted}
+                />
+        )
+    case 'QuestionResult':
+        return (<QuestionResult
+                    correct={correct}
+                    correctAnswer={currentQuestion}
+                    connection={websocket}
+                    submitted={submitted}
+                />
+            
+        )
+    case 'Rankings':
+        return (<EndResult 
+                    rankings={rankings}
                 />
         )
     }

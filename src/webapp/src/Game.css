@@ -58,10 +58,17 @@
     width: 50vw;
     flex-direction: column;
     align-self: center;
+    align-items: center;
     gap: 2vh;
 }
 
 .Question-button  {
     width: 50vw;
     height: 10vh;
+}
+
+.Next-button {
+    width: 20vw;
+    height: 10vh;
+
 }
