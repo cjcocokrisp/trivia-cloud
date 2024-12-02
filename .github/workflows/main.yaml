@@ -50,5 +50,8 @@ jobs:
           AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
           CI: ""
 
-      - name: Export S3 Bucket URL
-        run: jq -r '.TriviaCloud.WebsiteBucketURL' ./result.json >> $GITHUB_OUTPUT
+      - name: Archive result.json
+        uses: actions/upload-artifact@v4
+        with:
+          name: cdk-outputs
+          path: ./result.json
