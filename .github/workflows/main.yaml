@@ -49,3 +49,6 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ID }}
           AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
           CI: ""
+
+      - name: Export S3 Bucket URL
+        run: jq -r '.TriviaCloud.WebsiteBucketURL' ./result.json >> $GITHUB_OUTPUT
