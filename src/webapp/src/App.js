@@ -25,21 +25,21 @@ function SimpleDialog({
 }) {
     const [categories, setCategories] = useState([]);
 
+    useEffect(() => {
+        fetch('https://opentdb.com/api_category.php')
+            .then((res) => res.json())
+            .then((data) => {
+                setCategories(data.trivia_categories);
+            })
+            .catch((error) => console.error('Error fetching categories:', error));
+    }, []);
+
     const handleNumQuestionsChange = (event) => {
         const inputValue = event.target.value;
         if (/^\d*$/.test(inputValue)) {
             setNumQuestions(inputValue);
         }
     };
-
-    useEffect(() => {
-        // Fetch trivia categories from the API
-        fetch('https://opentdb.com/api_category.php')
-            .then((res) => res.json())
-            .then((data) => {
-                setCategories(data.trivia_categories);
-            });
-    }, []);
 
     const handleCategoryChange = (event) => {
         setCategory(categories[event.target.value]);
@@ -54,6 +54,8 @@ function SimpleDialog({
                     padding: '20px',
                     backgroundColor: '#f9f9f9',
                     borderRadius: '10px',
+                    color: '#000',
+                    boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.2)',
                 },
             }}
         >
@@ -83,8 +85,8 @@ function SimpleDialog({
                         onChange={handleCategoryChange}
                     >
                         {categories.map((cat, index) => (
-                            <MenuItem key={cat['id']} value={index}>
-                                {cat['name']}
+                            <MenuItem key={cat.id} value={index}>
+                                {cat.name}
                             </MenuItem>
                         ))}
                     </Select>
@@ -94,7 +96,12 @@ function SimpleDialog({
                         <strong>Warning:</strong> Please choose a valid category.
                     </div>
                 )}
-                <Button onClick={createGame} variant="contained" fullWidth style={{ marginTop: '10px' }}>
+                <Button
+                    onClick={createGame}
+                    variant="contained"
+                    fullWidth
+                    style={{ marginTop: '10px' }}
+                >
                     Create
                 </Button>
             </Box>
@@ -107,7 +114,7 @@ function App() {
     const [id, setId] = useState('');
     const [numQuestions, setNumQuestions] = useState(10);
     const [category, setCategory] = useState('');
-    const [connectiontype, setConnectionType] = useState('');
+    const [connectionType, setConnectionType] = useState('');
     const [inGame, setInGame] = useState(false);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [showNumWarning, setShowNumWarning] = useState(false);
@@ -123,15 +130,16 @@ function App() {
     };
 
     const createGame = () => {
-        if (numQuestions === '' || numQuestions < 1 || numQuestions > 50) {
-            setShowNumWarning(true); // Show warning if the number is invalid
+        const numQuestionsValid = numQuestions && numQuestions >= 1 && numQuestions <= 50;
+        if (!numQuestionsValid) {
+            setShowNumWarning(true);
         } else if (!category) {
-            setShowCategoryWarning(true); // Show warning if category isn't chosen
+            setShowCategoryWarning(true);
         } else {
-            setInGame(true); // Create the game
-            setConnectionType('create');
             setShowNumWarning(false);
             setShowCategoryWarning(false);
+            setInGame(true);
+            setConnectionType('create');
         }
     };
 
@@ -145,7 +153,7 @@ function App() {
                 <div className="App-header">
                     <img src={logo} className="App-logo" alt="logo" />
                     <TextField
-                        id="outlined-basic"
+                        id="outlined-username"
                         value={username}
                         onChange={(event) => setUsername(event.target.value)}
                         label="Username"
@@ -153,7 +161,7 @@ function App() {
                         style={{ marginBottom: '20px' }}
                     />
                     <TextField
-                        id="outlined-basic"
+                        id="outlined-game-id"
                         onChange={(event) => setId(event.target.value)}
                         label="Game ID"
                         variant="outlined"
@@ -181,16 +189,16 @@ function App() {
                 />
             </div>
         );
-    else
-        return (
-            <Game
-                connectiontype={connectiontype}
-                username={username}
-                numQuestions={numQuestions}
-                category={category}
-                id={id}
-            />
-        );
+
+    return (
+        <Game
+            connectionType={connectionType}
+            username={username}
+            numQuestions={numQuestions}
+            category={category}
+            id={id}
+        />
+    );
 }
 
 export default App;
