@@ -139,9 +139,9 @@ function App() {
             setShowCategoryWarning(true);
         } else {
             setShowNumWarning(false);
+            setConnectionType('create');
             setShowCategoryWarning(false);
             setInGame(true);
-            setConnectionType('create');
         }
     };
 
@@ -194,7 +194,7 @@ function App() {
 
     return (
         <Game
-            connectionType={connectionType}
+            connectiontype={connectionType}
             username={username}
             numQuestions={numQuestions}
             category={category}
