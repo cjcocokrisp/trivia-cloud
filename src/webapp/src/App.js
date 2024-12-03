@@ -24,6 +24,7 @@ function SimpleDialog({
     createGame,
 }) {
     const [categories, setCategories] = useState([]);
+    const [selectedCategory, setSelectedCategory] = useState();
 
     useEffect(() => {
         fetch('https://opentdb.com/api_category.php')
@@ -43,6 +44,7 @@ function SimpleDialog({
 
     const handleCategoryChange = (event) => {
         setCategory(categories[event.target.value]);
+        setSelectedCategory(event.target.value);
     };
 
     return (
@@ -52,7 +54,7 @@ function SimpleDialog({
             PaperProps={{
                 style: {
                     padding: '20px',
-                    backgroundColor: '#f9f9f9',
+                    backgroundColor: '#807d7d',
                     borderRadius: '10px',
                     color: '#000',
                     boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.2)',
