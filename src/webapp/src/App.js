@@ -83,7 +83,7 @@ function SimpleDialog({
                     <Select
                         labelId="select-label"
                         id="simple-select"
-                        value={category}
+                        value={selectedCategory}
                         onChange={handleCategoryChange}
                     >
                         {categories.map((cat, index) => (
